@@ -33,6 +33,9 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}
 
       - name: Clone Pyjinn
         run: git clone https://github.com/maxuser0/pyjinn.git
