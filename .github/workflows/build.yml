@@ -23,10 +23,6 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Force Gradle 8 Wrapper
-        run: |
-          sed -i 's/gradle-9.*/gradle-8.7-bin.zip/g' gradle/wrapper/gradle-wrapper.properties
-
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
