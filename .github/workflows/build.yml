@@ -1,4 +1,4 @@
-name: Build Minescript (Fabric)
+name: Build Minescript (Fabric Only)
 
 on:
   push:
@@ -13,39 +13,58 @@ jobs:
       # 1. Checkout repo
       - name: Checkout Minescript
         uses: actions/checkout@v4
-    
-      # 2. Hapus Forge & NeoForge (BIAR GAK KE-LOAD)
+
+      # 2. Remove Forge & NeoForge (biar gak error Gradle 9)
       - name: Remove Forge temporarily
         run: |
           sed -i '/forge/d' settings.gradle
           sed -i '/neoforge/d' settings.gradle
-    
-      # 3. Setup Java
+
+      # 3. Setup Java 21
       - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-    
-      # 4. (opsional) force gradle 8
+
+      # 4. Paksa Gradle 8 (Forge plugin gak support Gradle 9)
       - name: Force Gradle 8 Wrapper
         run: |
           sed -i 's/gradle-9.*/gradle-8.7-bin.zip/g' gradle/wrapper/gradle-wrapper.properties
-    
-      # 5. Clone Pyjinn
+
+      # 5. Cache Gradle
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}
+
+      # 6. Clone Pyjinn (dependency wajib)
       - name: Clone Pyjinn
         run: git clone https://github.com/maxuser0/pyjinn.git
-    
-      # 6. Build Pyjinn
+
+      # 7. Build & publish Pyjinn ke mavenLocal
       - name: Build & Publish Pyjinn
         working-directory: pyjinn
         run: |
           chmod +x gradlew
           ./gradlew interpreter:publishToMavenLocal
-    
-      # 7. Build Fabric
+
+      # 8. Permission gradlew
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      # 9. Build Fabric ONLY
       - name: Build Fabric Mod
         run: ./gradlew :fabric:build
+
+      # 10. Upload hasil jar
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
         with:
           name: minescript-fabric
           path: fabric/build/libs/*.jar
